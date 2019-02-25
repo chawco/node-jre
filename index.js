@@ -101,12 +101,12 @@
       child_process.spawnSync(driver(), getArgs(classpath, classname, args), options);
 
   const smoketest = exports.smoketest = () =>
-    spawnSync(['resources'], 'Smoketest', [], { encoding: 'utf8' })
+    spawnSync([__dirname + 'resources'], 'Smoketest', [], { encoding: 'utf8' })
     .stdout.trim() === 'No smoke!';
 
   const url = exports.url = () =>
     'https://download.oracle.com/otn-pub/java/jdk/' +
-    version + '-b' + build_number + '/' + hash + 
+    version + '-b' + build_number + '/' + hash +
     '/jre-' + version + '-' + platform() + '-' + arch() + '.tar.gz';
 
   const install = exports.install = callback => {

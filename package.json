@@ -1,5 +1,5 @@
 {
-  "name": "node-jre",
+  "name": "@cryptonumerics/node-jre",
   "version": "0.2.3",
   "description": "Embeds the Java Runtime Environment into a Node.js app",
   "main": "index.js",
