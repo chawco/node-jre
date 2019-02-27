@@ -36,11 +36,7 @@
   const ProgressBar = require('progress');
   const child_process = require('child_process');
 
-  const major_version = '8';
-  const update_number = '131';
-  const build_number = '11';
-  const hash = 'd54c1d3a095b4ff2b6607d096fa80163';
-  const version = major_version + 'u' + update_number;
+  const version = '11.0.2';
 
   const jreDir = exports.jreDir = () => path.join(__dirname, 'jre');
 
@@ -61,7 +57,7 @@
   var _platform = os.platform();
   var _driver;
   switch (_platform) {
-    case 'darwin': _platform = 'macosx'; _driver = ['Contents', 'Home', 'bin', 'java']; break;
+    case 'darwin': _platform = 'osx'; _driver = ['Contents', 'Home', 'bin', 'java']; break;
     case 'win32': _platform = 'windows'; _driver = ['bin', 'javaw.exe']; break;
     case 'linux': _driver = ['bin', 'java']; break;
     default:
@@ -105,9 +101,7 @@
     .stdout.trim() === 'No smoke!';
 
   const url = exports.url = () =>
-    'https://download.oracle.com/otn-pub/java/jdk/' +
-    version + '-b' + build_number + '/' + hash +
-    '/jre-' + version + '-' + platform() + '-' + arch() + '.tar.gz';
+        'https://download.java.net/java/GA/jdk11/9/GPL/openjdk-' + version + '_' + platform() + '-' + arch() + '_bin.tar.gz';
 
   const install = exports.install = callback => {
     var urlStr = url();
