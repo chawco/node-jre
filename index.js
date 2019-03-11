@@ -38,7 +38,7 @@
 
   const version = '11.0.2';
 
-  const jreDir = exports.jreDir = () => path.join(__dirname, 'jre');
+    const jreDir = exports.jreDir = () => path.join(__dirname, '..', '..', '..', '..', 'jre');
 
   const fail = reason => {
     console.error(reason);
