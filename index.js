@@ -30,6 +30,7 @@
   const path = require('path');
   const rmdir = require('rmdir');
   const zlib = require('zlib');
+  const extract = require('extract-zip');
   const tar = require('tar-fs');
   const process = require('process');
   const request = require('request');

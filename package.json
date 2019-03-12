@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/schreiben/node-jre#readme",
   "dependencies": {
+    "extract-zip": "^1.6.7",
     "fs": "0.0.1-security",
     "os": "^0.1.1",
     "progress": "^1.1.8",
