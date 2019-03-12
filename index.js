@@ -190,6 +190,6 @@
             })
             .pipe(zlib.createUnzip())
             .pipe(tar.extract(jreDir()));
+    }
   };
-
 })();
