@@ -56,10 +56,11 @@
 
   var _platform = os.platform();
   var _driver;
+  var _archive;
   switch (_platform) {
-    case 'darwin': _platform = 'osx'; _driver = ['Contents', 'Home', 'bin', 'java']; break;
-    case 'win32': _platform = 'windows'; _driver = ['bin', 'javaw.exe']; break;
-    case 'linux': _driver = ['bin', 'java']; break;
+    case 'darwin': _platform = 'osx'; _driver = ['Contents', 'Home', 'bin', 'java']; _archive = "tar.gz"; break;
+    case 'win32': _platform = 'windows'; _driver = ['bin', 'javaw.exe']; _archive = "zip"; break;
+    case 'linux': _driver = ['bin', 'java']; _archive = "tar.gz"; break;
     default:
       fail('unsupported platform: ' + _platform);
   }
@@ -101,46 +102,94 @@
     .stdout.trim() === 'No smoke!';
 
   const url = exports.url = () =>
-        'https://download.java.net/java/GA/jdk11/9/GPL/openjdk-' + version + '_' + platform() + '-' + arch() + '_bin.tar.gz';
+        'https://download.java.net/java/GA/jdk11/9/GPL/openjdk-' + version + '_' + platform() + '-' + arch() + '_bin.' + _archive;
 
   const install = exports.install = callback => {
     var urlStr = url();
+    var options = {
+            url: url(),
+            rejectUnauthorized: false,
+            agent: false,
+            headers: {
+              connection: 'keep-alive',
+              'Cookie': 'gpw_e24=http://www.oracle.com/; oraclelicense=accept-securebackup-cookie'
+            }
+    }
     console.log("Downloading from: ", urlStr);
     callback = callback || (() => {});
     rmdir(jreDir());
-    request
-      .get({
-        url: url(),
-        rejectUnauthorized: false,
-        agent: false,
-        headers: {
-          connection: 'keep-alive',
-          'Cookie': 'gpw_e24=http://www.oracle.com/; oraclelicense=accept-securebackup-cookie'
-        }
-      })
-      .on('response', res => {
-        var len = parseInt(res.headers['content-length'], 10);
-        var bar = new ProgressBar('  downloading and preparing JRE [:bar] :percent :etas', {
-          complete: '=',
-          incomplete: ' ',
-          width: 80,
-          total: len
+    if (platform() == 'windows') {
+        var zipfilename = path.join(jreDir(),'../' ,'test.zip')
+        var zipfile = fs.createWriteStream(zipfilename).on('finish', function() {
+            console.log('file has been written');
+            extract(zipfilename, {
+                dir: jreDir()
+            }, function(err) {
+                if (err) {
+                    console.log(err)
+                    callback(err)
+                } else {
+                    console.log(`${urlStr} downloaded and unpacked in ${jreDir()}`)
+                    callback(`${urlStr} downloaded and unpacked in ${ jreDir()}`)
+                }
+            })
         });
-        res.on('data', chunk => bar.tick(chunk.length));
-      })
-      .on('error', err => {
-        console.log(`problem with request: ${err.message}`);
-        callback(err);
-      })
-      .on('end', () => {
-        try{
-          if (smoketest()) callback(); else callback("Smoketest failed.");
-        }catch(err){
-          callback(err);
-        }
-      })
-      .pipe(zlib.createUnzip())
-      .pipe(tar.extract(jreDir()));
+        var progress = 0
+        request
+            .get(options)
+            .on('response', res => {
+                var len = parseInt(res.headers['content-length'], 10);
+                var done = 0;
+                var bar = new ProgressBar('  downloading and preparing JRE [:bar] :percent :etas', {
+                    complete: '=',
+                    incomplete: ' ',
+                    width: 80,
+                    total: len
+                });
+                res.on('data', chunk => {
+                    done += chunk.length
+                    var increment = Math.floor(len/10)
+                    if (done > progress) {
+                        console.log(`${done} ${len}`)
+                        progress = progress + increment
+                    }
+                });
+            })
+            .on('error', err => {
+                console.log(`problem with request: ${err.message}`);
+                callback(err);
+            })
+            .on('end', () => {
+        	    //asynchronous close. 'finish' event on stream is after file is closed
+                zipfile.end()
+            })
+            .pipe(zipfile)
+    } else {
+        request
+            .get(options)
+            .on('response', res => {
+                var len = parseInt(res.headers['content-length'], 10);
+                var bar = new ProgressBar('  downloading and preparing JRE [:bar] :percent :etas', {
+                    complete: '=',
+                    incomplete: ' ',
+                    width: 80,
+                    total: len
+                });
+                res.on('data', chunk => bar.tick(chunk.length));
+            })
+            .on('error', err => {
+                console.log(`problem with request: ${err.message}`);
+                callback(err);
+            })
+            .on('end', () => {
+                try{
+                    if (smoketest()) callback(); else callback("Smoketest failed.");
+                }catch(err){
+                    callback(err);
+                }
+            })
+            .pipe(zlib.createUnzip())
+            .pipe(tar.extract(jreDir()));
   };
 
 })();
