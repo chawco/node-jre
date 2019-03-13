@@ -98,9 +98,13 @@
     (classpath, classname, args, options) =>
       child_process.spawnSync(driver(), getArgs(classpath, classname, args), options);
 
-  const smoketest = exports.smoketest = () =>
-    spawnSync([__dirname + '/resources'], 'Smoketest', [], { encoding: 'utf8' })
-    .stdout.trim() === 'No smoke!';
+  const smoketest = exports.smoketest = () => {
+    const stdout = spawnSync([__dirname + '/resources'], 'Smoketest', [], { encoding: 'utf8' }).stdout
+    if (stdout == null) {
+       return false;
+    }
+    return stdout.trim() === 'No smoke!';
+  }
 
   const url = exports.url = () =>
         'https://download.java.net/java/GA/jdk11/9/GPL/openjdk-' + version + '_' + platform() + '-' + arch() + '_bin.' + _archive;
